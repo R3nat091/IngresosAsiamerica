@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de Registro - Inventario de Equipos</title>
+    <link rel="stylesheet" href="editar.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">Ficha de Registro - Inventario de Equipos</div>
+        <div id="ultimo-id-inventario" style="margin-bottom: 15px; font-weight: bold; color: #b30000;"></div>
+        <form id="solicitudForm" action="/submit2" method="post">
+            <div class="form-section">
+                <table>
+                    <tr><td><label for="id">ID</label></td><td><input type="text" id="id" name="id" placeholder="Ej. EQ-001" required></td></tr>
+                    <tr><td><label for="Marca">Marca</label></td><td><input type="text" id="Marca" name="Marca" placeholder="Ej. Dell" required></td></tr>
+                    <tr><td><label for="Modelo">Modelo</label></td><td><input type="text" id="Modelo" name="Modelo" placeholder="Ej. Latitude 5420" required></td></tr>
+                    <tr><td><label for="RAM">RAM</label></td><td><input type="text" id="RAM" name="RAM" placeholder="Ej. 16 GB" required></td></tr>
+                    <tr><td><label for="Procesador">Procesador</label></td><td><input type="text" id="Procesador" name="Procesador" placeholder="Ej. Intel i7" required></td></tr>
+                    <tr><td><label for="Almacenamiento">Tipo almacenamiento y Cantidad</label></td><td><input type="text" id="Almacenamiento" name="Almacenamiento" placeholder="Ej. SSD 512 GB" required></td></tr>
+                    <tr><td><label for="OS">OS</label></td><td><input type="text" id="OS" name="OS" placeholder="Ej. Windows 11 Pro" required></td></tr>
+                    <tr><td><label for="Pantalla">Pantalla</label></td><td><input type="text" id="Pantalla" name="Pantalla" placeholder="Ej. 14'' Full HD" required></td></tr>
+                    <tr><td><label for="Grafica">Tarjeta Gráfica</label></td><td><input type="text" id="Grafica" name="Grafica" placeholder="Ej. Intel Iris Xe" required></td></tr>
+                    <tr><td><label for="MAC">MAC address</label></td><td><input type="text" id="MAC" name="MAC" placeholder="Ej. A1:B2:C3:D4:E5:F6" ></td></tr>
+                    <tr><td><label for="Serie">Serie</label></td><td><input type="text" id="Serie" name="Serie" placeholder="Ej. SN123456789" required></td></tr>
+                    <tr><td><label for="Equipo">N° de equipo</label></td><td><input type="text" id="Numero_Equipo" name="Numero_Equipo" placeholder="12k154hf02" ></td></tr>
+                    <tr><td><label for="Estado">Estado</label></td><td><input type="text" id="Estado" name="Estado" placeholder="Ej. Nuevo" required></td></tr>
+                    <tr><td><label for="Garantia">Garantía</label></td><td><input type="text" id="Garantia" name="Garantia" placeholder="Ej. 2 años" ></td></tr>
+                    <tr><td><label for="Garantia_Caduca">Garantía_Caduca</label></td><td><input type="date" id="Garantia_Caduca" name="Garantia_Caduca" placeholder="Ej. 2026-05-11" ></td></tr>
+                    <tr>
+                    <td><label for="Mueble">Mueble</label></td>
+                    <td><input type="text" id="Mueble" name="Mueble" placeholder="Sin uso/Venta" ></td>
+                    </tr>
+                    <tr>
+                    <td><label for="Bodega">Bodega</label></td>
+                    <td><input type="text" id="Bodega" name="Bodega" placeholder="En uso/Sin uso"></td>
+                    </tr>
+                    <tr>
+                    <td><label for="oficina">Oficina</label></td>
+                    <td><input type="text" id="oficina" name="oficina" placeholder="En uso/Sin Usuarios" required></td>
+                    </tr>
+
+                    <tr><td><label for="PAIS">PAÍS</label></td><td><input type="text" id="PAIS" name="PAIS" placeholder="Ej. Chile" required></td></tr>
+                </table>
+            </div>
+            <p id="mensaje" style="display: none; color: rgb(0, 0, 0);">Formulario guardado correctamente</p>
+            <div class="button-container">
+                <button type="submit" class="submit-btn">Guardar Información</button>
+                <button type="reset" class="reset-btn">Reiniciar Formulario</button>
+                <button type="button" onclick="location.href='/index.html'">Volver al Inicio</button>
+            </div>
+        </form>
+    </div>
+    <script>
+  document.getElementById("solicitudForm").addEventListener("submit", async function(event) {
+      event.preventDefault(); // Evita la recarga de la página
+
+      // Capturar los datos del formulario
+      const formData = new FormData(this);
+      const jsonData = {};
+      formData.forEach((value, key) => {
+          jsonData[key] = value;
+      });
+
+      try {
+          const response = await fetch("/submit2", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify(jsonData)
+          });
+
+        if (response.ok) {
+            const data = await response.json();
+            alert(data.mensaje || "Guardado exitosamente");
+            cargarUltimoIdInventario(); // para refrescar
+            document.getElementById("solicitudForm").reset();
+        } else {
+            const errorText = await response.text();
+            console.error("⚠️ Error en la respuesta:", errorText);
+            alert("❌ Error al guardar: " + errorText);
+        }
+
+      } catch (error) {
+          console.error("Error en la solicitud:", error);
+          alert("Error en la conexión con el servidor");
+      }
+  });
+  
+
+</script>  
+<script>
+  async function cargarUltimoIdInventario() {
+    try {
+      const res = await fetch('/ultimoIdInventario');
+      const data = await res.json();
+      if (data.ultimoId) {
+        const texto = data.ultimoId;
+        const numero = parseInt(texto.slice(3)) + 1;
+        const nuevoId = 'LPT' + numero;
+        document.getElementById("id").value = nuevoId;
+        document.getElementById("ultimo-id-inventario").innerText = `Último ID registrado: ${data.ultimoId}`;
+      }
+    } catch (err) {
+      console.warn("No se pudo obtener el último ID.");
+    }
+  }
+  cargarUltimoIdInventario();
+</script>
+
+
+</body>
+</html>

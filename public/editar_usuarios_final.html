@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Usuarios</title>
+    <link rel="stylesheet" href="editar.css">
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">Editar Información de Usuarios</div>
+        <div class="form-section">
+            <form id="buscarUsuarioForm">
+                <label for="nombreUsuario">Buscar por Nombre:</label>
+                <input type="text" id="nombreUsuario" name="nombreUsuario" placeholder="Ej: Juan Pérez" required>
+                <button type="submit">Buscar</button>
+                <button type="button" onclick="location.href='/index.html'">Volver al Inicio</button>
+            </form>
+        </div>
+        <form id="formUsuario" style="display:none;">
+            <table>
+                <tr><td><label for="id_usuario">ID Usuario</label></td><td><input type="text" id="id_usuario" name="id_usuario" readonly></td></tr>
+                <tr><td><label for="nombre">Nombre</label></td><td><input type="text" id="nombre" name="nombre"></td></tr>
+                <tr><td><label for="departamento">Departamento</label></td><td><input type="text" id="departamento" name="departamento"></td></tr>
+                <tr><td><label for="modalidad">Modalidad</label></td><td><input type="text" id="modalidad" name="modalidad"></td></tr>
+                <tr><td><label for="estado">Estado</label></td><td><input type="text" id="estado" name="estado"></td></tr>
+                <tr><td><label for="pais">País</label></td><td><input type="text" id="pais" name="pais"></td></tr>
+                <tr><td><label for="lugar">Lugar</label></td><td><input type="text" id="lugar" name="lugar"></td></tr>
+                <tr><td><label for="area">Área</label></td><td><input type="text" id="area" name="area"></td></tr>
+                <tr><td><label for="email">Email</label></td><td><input type="email" id="email" name="email"></td></tr>
+            </table>
+            <div class="button-container">
+                <button type="submit" class="submit-btn">Actualizar Usuario</button>
+                <button type="button" onclick="location.href='/index.html'">Volver al Inicio</button>
+            </div>
+        </form>
+    </div>
+<script>
+document.getElementById('buscarUsuarioForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const nombre = document.getElementById('nombreUsuario').value;
+    const res = await fetch(`/buscar_usuario?nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+    if (data.length > 0) {
+        const usuario = data[0];
+        document.getElementById('formUsuario').style.display = 'block';
+        document.getElementById('id_usuario').value = usuario.Id || '';
+        document.getElementById('nombre').value = usuario.Nombre || '';
+        document.getElementById('departamento').value = usuario.Departamento || '';
+        document.getElementById('modalidad').value = usuario.Modalidad || '';
+        document.getElementById('estado').value = usuario.Estado || '';
+        document.getElementById('pais').value = usuario.Pais || '';
+        document.getElementById('lugar').value = usuario.Lugar || '';
+        document.getElementById('area').value = usuario.Area || '';
+        document.getElementById('email').value = usuario.Email || '';
+
+    } else {
+        alert('Usuario no encontrado');
+    }
+});
+</script>
+
+<script>
+document.getElementById('formUsuario').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const form = new FormData(this);
+    const data = Object.fromEntries(form.entries());
+
+    const res = await fetch('/editar_usuario', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+
+    if (res.ok) {
+        alert('✅ Usuario actualizado correctamente');
+
+        // Ocultar formulario
+        document.getElementById('formUsuario').style.display = 'none';
+
+        // Limpiar campos
+        this.reset();
+
+        // Limpiar campo de búsqueda también
+        document.getElementById('nombreUsuario').value = '';
+    } else {
+        alert('❌ Error al actualizar usuario');
+    }
+});
+
+document.getElementById('buscarUsuarioForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const nombre = document.getElementById('nombreUsuario').value;
+    const res = await fetch(`/buscar_usuario?nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+
+    if (data.length > 0) {
+        const usuario = data[0];
+        document.getElementById('formUsuario').style.display = 'block';
+
+        document.getElementById('id_usuario').value = usuario.Id || '';
+        document.getElementById('nombre').value = usuario.Nombre || '';
+        document.getElementById('departamento').value = usuario.Departamento || '';
+        document.getElementById('modalidad').value = usuario.Modalidad || '';
+        document.getElementById('estado').value = usuario.Estado || '';
+        document.getElementById('pais').value = usuario.Pais || '';
+        document.getElementById('lugar').value = usuario.Lugar || '';
+        document.getElementById('area').value = usuario.Area || '';
+        document.getElementById('email').value = usuario.Email || '';
+    } 
+});
+</script>
+
+
+</body>
+</html>

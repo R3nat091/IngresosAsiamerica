@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Asignación de Equipos</title>
+  <link rel="stylesheet" href="editar.css">
+</head>
+<body>
+  <div class="form-container">
+    <div class="form-header">Registro de Asignacion de Equipo</div>
+
+    <form id="buscarForm">
+      <label for="nombreBuscar">Buscar Colaborador:</label>
+      <input type="text" id="nombreBuscar" placeholder="Ej: Juan Pérez" required>
+      <label for="idBuscar">buscar ID del equipo:</label>
+      <input type="text" id="idBuscar" placeholder="Ej: LPT050" required>
+      <button type="submit">Buscar</button>
+      <button type="button" onclick="location.href='/index.html'">Volver al Inicio</button>
+    </form>
+
+    <form id="formAsignacion" style="display: none;">
+      <table>
+        <tr><td><label for="USE">ID Usuario</label></td><td><input type="text" id="USE" name="USE" readonly></td></tr>
+        <tr><td><label for="Nombre">Nombre</label></td><td><input type="text" id="Nombre" name="Nombre"></td></tr>
+        <tr><td><label for="Departamento">Departamento</label></td><td><input type="text" id="Departamento" name="Departamento"></td></tr>
+        <tr><td><label for="Area">Área</label></td><td><input type="text" id="Area" name="Area"></td></tr>
+        <tr><td><label for="Modalidad">Modalidad</label></td><td><input type="text" id="Modalidad" name="Modalidad"></td></tr>
+        <tr><td><label for="Email">Email</label></td><td><input type="email" id="Email" name="Email"></td></tr>
+        <tr><td><label for="Estado_colaborador">Estado</label></td><td><input type="text" id="Estado_colaborador" name="Estado_colaborador"></td></tr>
+        <tr><td><label for="Pais_colaborador">País</label></td><td><input type="text" id="Pais_colaborador" name="Pais_colaborador"></td></tr>
+        <tr><td><label for="Lugar">Lugar</label></td><td><input type="text" id="Lugar" name="Lugar"></td></tr>
+
+        <tr><td><label for="id">ID Equipo</label></td><td><input type="text" id="id" name="id" readonly></td></tr>
+        <tr><td><label for="Marca">Marca</label></td><td><input type="text" id="Marca" name="Marca"></td></tr>
+        <tr><td><label for="Modelo">Modelo</label></td><td><input type="text" id="Modelo" name="Modelo"></td></tr>
+        <tr><td><label for="RAM">RAM</label></td><td><input type="text" id="RAM" name="RAM"></td></tr>
+        <tr><td><label for="Procesador">Procesador</label></td><td><input type="text" id="Procesador" name="Procesador"></td></tr>
+        <tr><td><label for="Almacenamiento">Almacenamiento</label></td><td><input type="text" id="Almacenamiento" name="Almacenamiento"></td></tr>
+        <tr><td><label for="Grafica">Gráfica</label></td><td><input type="text" id="Grafica" name="Grafica"></td></tr>
+        <tr><td><label for="MAC">MAC</label></td><td><input type="text" id="MAC" name="MAC"></td></tr>
+        <tr><td><label for="Serie">Serie</label></td><td><input type="text" id="Serie" name="Serie"></td></tr>
+        <tr><td><label for="Pais">País del Equipo</label></td><td><input type="text" id="Pais" name="Pais"></td></tr>
+      </table>
+
+      <div class="button-container">
+        <button type="submit">Guardar Asignación</button>
+        <button type="button" onclick="location.reload()">Volver a Buscar</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+document.getElementById('buscarForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const nombre = document.getElementById('nombreBuscar').value.trim();
+  const id = document.getElementById('idBuscar').value.trim();
+
+  if (!nombre && !id) return alert("Ingresa nombre o ID");
+
+  try {
+    if (nombre) {
+      const res = await fetch(`/buscarColaborador/${nombre}`);
+      const data = await res.json();
+      if (!res.ok) return alert("Colaborador no encontrado");
+
+      document.getElementById('formAsignacion').style.display = 'block';
+      document.getElementById('USE').value = data.Id || '';
+      document.getElementById('Nombre').value = data.Nombre || '';
+      document.getElementById('Departamento').value = data.Departamento || '';
+      document.getElementById('Area').value = data.area || '';
+      document.getElementById('Modalidad').value = data.Modalidad || '';
+      document.getElementById('Email').value = data.Email || '';
+      document.getElementById('Estado_colaborador').value = data.Estado || '';
+      document.getElementById('Pais_colaborador').value = data.Pais || '';
+      document.getElementById('Lugar').value = data.Lugar || '';
+    }
+
+    if (id) {
+      const res2 = await fetch(`/buscarInventario/${id}`);
+      const data2 = await res2.json();
+      if (!res2.ok) return alert("Equipo no encontrado");
+
+      document.getElementById('id').value = data2.ID || '';
+      document.getElementById('Marca').value = data2.Marca || '';
+      document.getElementById('Modelo').value = data2.Modelo || '';
+      document.getElementById('RAM').value = data2.RAM || '';
+      document.getElementById('Procesador').value = data2.Procesador || '';
+      document.getElementById('Almacenamiento').value = data2.Almacenamiento || '';
+      document.getElementById('Grafica').value = data2.Grafica || '';
+      document.getElementById('MAC').value = data2.MAC || '';
+      document.getElementById('Serie').value = data2.Serie || '';
+      document.getElementById('Pais').value = data2.Pais || '';
+    }
+  } catch (err) {
+    alert("Error al buscar datos");
+  }
+});
+
+document.getElementById('formAsignacion').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(this).entries());
+
+  const res = await fetch('/guardarAsignacion', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  if (res.ok) {
+    alert('✅ Asignación guardada correctamente');
+    document.getElementById('formAsignacion').reset();
+    document.getElementById('formAsignacion').style.display = 'none';
+    document.getElementById('buscarForm').reset();
+  } else {
+    alert('❌ Error al guardar asignación');
+  }
+});
+</script>
+</body>
+</html>

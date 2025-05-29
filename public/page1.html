@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Profesional - Nuevos Colaboradores</title>
+    <link rel="stylesheet" href="editar.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="form-container">
+        <div class="form-header">Ficha Profesional de Registro - Nuevos Colaboradores</div>
+
+        <!-- Mostrar Último ID de Usuarios Existentes -->
+        <div id="ultimo-id-info" style="margin-bottom: 20px; font-weight: bold; color: #b30000;"></div>
+
+        <form id="solicitudForm" action="/submit1" method="post">
+            <div class="form-section">
+                <table>
+                    <tr><td><label for="id">ID</label></td><td><input type="text" id="id" name="id" placeholder="USE000"></td></tr>
+                    <tr><td><label for="Nombre">Nombre del Colaborador</label></td><td><input type="text" id="Nombre" name="Nombre" placeholder="Jose Perez" required></td></tr>
+                    <tr><td><label for="Departamento">Departamento</label></td><td><input type="text" id="Departamento" name="Departamento" placeholder="Informatica"></td></tr>
+                    <tr><td><label for="area">Cargo</label></td><td><input type="text" id="area" name="area" placeholder="Ej: Soporte TI" required></td></tr>
+                    <tr><td><label for="Modalidad">Modalidad</label></td><td><input type="text" id="Modalidad" name="Modalidad" placeholder="Precencial/Hibrido/Online" required></td></tr>
+                    <tr><td><label for="Correo">Correo</label></td><td><input type="email" id="Email" name="Email" placeholder="Ej: ejemplo@asiamerica.cl"></td></tr>
+                    <tr><td><label for="Estado">Estado</label></td><td><input type="text" id="Estado" name="Estado" placeholder="Activo/Inactivo"></td></tr>
+                    <tr><td><label for="Pais">País</label></td><td><input type="text" id="Pais" name="Pais" placeholder="Chile/Peru"></td></tr>
+                    <tr><td><label for="Lugar">Lugar</label></td><td><input type="text" id="Lugar" name="Lugar" placeholder="Oficina/Bodega"></td></tr>
+                </table>
+            </div>
+            <p id="mensaje" style="display: none; color: rgb(0, 0, 0);">Formulario guardado correctamente</p>
+            <div class="button-container">
+                <button type="submit" class="submit-btn">Guardar Información</button>
+                <button type="reset" class="reset-btn">Reiniciar Formulario</button>
+                <button type="button" onclick="location.href='/index.html'">Volver al Inicio</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+    async function cargarUltimoId() {
+        try {
+            const res = await fetch('/ultimoIdUsuario');
+            const data = await res.json();
+            if (data.ultimoId !== null) {
+                const info = document.getElementById('ultimo-id-info');
+                info.innerHTML = `Último ID registrado: <span>${data.ultimoId}</span>`;
+            }
+        } catch (err) {
+            console.warn("No se pudo cargar el último ID de usuario.");
+        }
+    }
+    cargarUltimoId();
+
+    document.getElementById("solicitudForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const jsonData = {};
+        formData.forEach((value, key) => {
+            jsonData[key] = value;
+        });
+
+        try {
+            const response = await fetch("/submit1", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(jsonData)
+            });
+
+            if (response.ok) {
+                const contentType = response.headers.get("content-type");
+                let data = {};
+                if (contentType && contentType.includes("application/json")) {
+                    data = await response.json();
+                    console.log("Respuesta del servidor:", data);
+                }
+
+                alert("Solicitud guardada correctamente ✅");
+                document.getElementById("solicitudForm").reset();
+                if (typeof generarPDF === 'function') generarPDF();
+
+                const info = document.getElementById("ultimo-id-info");
+                if (data.id) {
+                    info.innerHTML = `Nuevo colaborador registrado con ID: <span>${data.id}</span>`;
+                } else {
+                    cargarUltimoId();
+                }
+            } else {
+                const errorText = await response.text();
+                console.error("Error desde el servidor:", errorText);
+                alert("Error al guardar la solicitud ❌");
+            }
+        } catch (error) {
+            console.error("Error en la solicitud:", error);
+            alert("Error en la conexión con el servidor");
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Asignaciones</title>
+  <link rel="stylesheet" href="editar.css">
+</head>
+<body>
+  <div class="form-container">
+    <div class="form-header">Editar Asignación de Equipos</div>
+
+    <div class="form-section">
+      <form id="buscarForm">
+        <label for="nombreBuscar">Buscar por Nombre:</label>
+        <input type="text" id="nombreBuscar" name="nombreBuscar" placeholder="Ej: Juan Pérez" required>
+        <button type="submit">Buscar</button>
+        <button type="button" onclick="location.href='/index.html'">Volver al Inicio</button>
+      </form>
+    </div>
+
+    <div id="asignacionesMultiples" style="display:none; margin-top: 20px;">
+      <label>Selecciona una asignación:</label>
+      <select id="selectorAsignaciones"></select>
+    </div>
+
+    <form id="formAsignacion" style="display:none; margin-top: 20px;">
+      <table>
+        <tr><td colspan="2"><strong>Datos del Colaborador</strong></td></tr>
+        <tr><td><label for="USE">ID Usuario</label></td><td><input type="text" id="USE" name="USE" readonly></td></tr>
+        <tr><td><label for="Nombre">Nombre</label></td><td><input type="text" id="Nombre" name="Nombre"></td></tr>
+        <tr><td><label for="Departamento">Departamento</label></td><td><input type="text" id="Departamento" name="Departamento"></td></tr>
+        <tr><td><label for="Modalidad">Modalidad</label></td><td><input type="text" id="Modalidad" name="Modalidad"></td></tr>
+        <tr><td><label for="Estado_colaborador">Estado</label></td><td><input type="text" id="Estado_colaborador" name="Estado_colaborador"></td></tr>
+        <tr><td><label for="Pais_colaborador">País</label></td><td><input type="text" id="Pais_colaborador" name="Pais_colaborador"></td></tr>
+        <tr><td><label for="Lugar">Lugar</label></td><td><input type="text" id="Lugar" name="Lugar"></td></tr>
+
+        <tr><td colspan="2"><strong>Datos del Equipo</strong></td></tr>
+        <tr><td><label for="id">ID Equipo</label></td><td><input type="text" id="id" name="id"></td></tr>
+        <tr><td><label for="Marca">Marca</label></td><td><input type="text" id="Marca" name="Marca"></td></tr>
+        <tr><td><label for="Modelo">Modelo</label></td><td><input type="text" id="Modelo" name="Modelo"></td></tr>
+        <tr><td><label for="RAM">RAM</label></td><td><input type="text" id="RAM" name="RAM"></td></tr>
+        <tr><td><label for="Procesador">Procesador</label></td><td><input type="text" id="Procesador" name="Procesador"></td></tr>
+        <tr><td><label for="Almacenamiento">Almacenamiento</label></td><td><input type="text" id="Almacenamiento" name="Almacenamiento"></td></tr>
+        <tr><td><label for="Grafica">Gráfica</label></td><td><input type="text" id="Grafica" name="Grafica"></td></tr>
+        <tr><td><label for="MAC">MAC</label></td><td><input type="text" id="MAC" name="MAC"></td></tr>
+        <tr><td><label for="Serie">Serie</label></td><td><input type="text" id="Serie" name="Serie"></td></tr>
+        <tr><td><label for="Pais">País Equipo</label></td><td><input type="text" id="Pais" name="Pais"></td></tr>
+        <tr><td><label for="FechaRegistro">Fecha Registro</label></td><td><input type="text" id="FechaRegistro" name="FechaRegistro"></td></tr>
+      </table>
+
+      <div class="button-container">
+        <button type="button" class="submit-btn" onclick="actualizarAsignacion()">Actualizar</button>
+        <button type="button" onclick="eliminarAsignacion()">Eliminar</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('buscarForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const nombre = document.getElementById('nombreBuscar').value.trim();
+      if (!nombre) return alert('Debes ingresar un nombre');
+
+      const res = await fetch(`/buscarAsignacion?nombre=${encodeURIComponent(nombre)}`);
+      if (!res.ok) return alert("❌ No se encontró asignación");
+
+      const data = await res.json();
+      if (!Array.isArray(data)) return alert("❌ Respuesta inesperada del servidor");
+
+      const select = document.getElementById('selectorAsignaciones');
+      select.innerHTML = '';
+      data.forEach((item, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${item.ID_Equipo} - ${item.Marca} (${item.Serie})`;
+        select.appendChild(opt);
+      });
+
+      select.onchange = () => cargarAsignacion(data[select.value]);
+
+      document.getElementById('asignacionesMultiples').style.display = data.length > 1 ? 'block' : 'none';
+      cargarAsignacion(data[0]);
+      document.getElementById('formAsignacion').style.display = 'block';
+    });
+
+    function cargarAsignacion(data) {
+      const campos = {
+        USE: data.Id,
+        Nombre: data.Nombre,
+        Departamento: data.Departamento,
+        Modalidad: data.Modalidad,
+        Estado_colaborador: data.Estado_colaborador,
+        Pais_colaborador: data.Pais_colaborador,
+        Lugar: data.Lugar,
+        id: data.ID_Equipo,
+        Marca: data.Marca,
+        Modelo: data.Modelo,
+        RAM: data.RAM,
+        Procesador: data.Procesador,
+        Almacenamiento: data.Almacenamiento,
+        Grafica: data.Grafica,
+        MAC: data.MAC,
+        Serie: data.Serie,
+        Pais: data.PAIS_equipo,
+        FechaRegistro: data.FechaRegistro
+      };
+
+      for (const key in campos) {
+        const el = document.getElementById(key);
+        if (el) el.value = campos[key] || '';
+      }
+    }
+
+    async function actualizarAsignacion() {
+      const form = document.getElementById('formAsignacion');
+      const data = Object.fromEntries(new FormData(form).entries());
+
+      const res = await fetch('/actualizarAsignacion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (res.ok) {
+        alert("✅ Asignación actualizada");
+        form.reset();
+        form.style.display = 'none';
+      } else {
+        alert("❌ Error al actualizar asignación");
+      }
+    }
+
+async function eliminarAsignacion() {
+  const idEquipo = document.getElementById('id').value;
+  if (!idEquipo) return alert("ID de equipo vacío");
+
+  if (!confirm(`¿Eliminar asignación del equipo ${idEquipo}?`)) return;
+
+  const res = await fetch(`/eliminarAsignacion/${idEquipo}`, { method: 'DELETE' });
+
+  if (res.ok) {
+    alert("🗑️ Asignación eliminada");
+
+    // Elimina opción del selector
+    const selector = document.getElementById('selectorAsignaciones');
+    const idx = selector.selectedIndex;
+    selector.remove(idx);
+
+    if (selector.options.length > 0) {
+      selector.selectedIndex = 0;
+      selector.dispatchEvent(new Event('change'));
+    } else {
+      document.getElementById('formAsignacion').reset();
+      document.getElementById('formAsignacion').style.display = 'none';
+      document.getElementById('asignacionesMultiples').style.display = 'none';
+    }
+  } else {
+    alert("❌ No se pudo eliminar");
+  }
+}
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Notebooks</title>
+  <link rel="stylesheet" href="editar.css">
+</head>
+<body>
+  <div class="form-container">
+    <div class="form-header">Editar Información de Notebooks</div>
+    <div class="form-section">
+      <form id="buscarNotebookForm">
+        <label for="idNotebook">Buscar por ID:</label>
+        <input type="text" id="idNotebook" name="idNotebook" placeholder="Ej: LPT050">
+        
+        <label for="serieNotebook">O por Serie:</label>
+        <input type="text" id="serieNotebook" name="serieNotebook" placeholder="Ej: 5CDXXXXXX">
+
+        <button type="submit">Buscar</button>
+        <button type="button" onclick="location.href='/index.html'">Volver al Inicio</button>
+      </form>
+    </div>
+
+    <form id="formNotebook" style="display:none;" method="post">
+      <table>
+        <tr><td><label for="ID">ID Notebook</label></td><td><input type="text" id="ID" name="ID" readonly></td></tr>
+        <tr><td><label for="Marca">Marca</label></td><td><input type="text" id="Marca" name="Marca"></td></tr>
+        <tr><td><label for="Modelo">Modelo</label></td><td><input type="text" id="Modelo" name="Modelo"></td></tr>
+        <tr><td><label for="RAM">RAM</label></td><td><input type="text" id="RAM" name="RAM"></td></tr>
+        <tr><td><label for="Procesador">Procesador</label></td><td><input type="text" id="Procesador" name="Procesador"></td></tr>
+        <tr><td><label for="Almacenamiento">Almacenamiento</label></td><td><input type="text" id="Almacenamiento" name="Almacenamiento"></td></tr>
+        <tr><td><label for="OS">OS</label></td><td><input type="text" id="OS" name="OS"></td></tr>
+        <tr><td><label for="Pantalla">Pantalla</label></td><td><input type="text" id="Pantalla" name="Pantalla"></td></tr>
+        <tr><td><label for="Grafica">Gráfica</label></td><td><input type="text" id="Grafica" name="Grafica"></td></tr>
+        <tr><td><label for="MAC">MAC</label></td><td><input type="text" id="MAC" name="MAC"></td></tr>
+        <tr><td><label for="Serie">Serie</label></td><td><input type="text" id="Serie" name="Serie"></td></tr>
+        <tr><td><label for="Numero_Equipo">N° de equipo</label></td><td><input type="text" id="Numero_Equipo" name="Numero_Equipo"></td></tr>
+        <tr><td><label for="Estado">Estado</label></td><td><input type="text" id="Estado" name="Estado"></td></tr>
+        <tr><td><label for="Garantia">Garantía</label></td><td><input type="text" id="Garantia" name="Garantia"></td></tr>
+        <tr><td><label for="Garantia_Caduca">Garantía Caduca</label></td><td><input type="text" id="Garantia_Caduca" name="Garantia_Caduca"></td></tr>
+        <tr><td><label for="Mueble">Mueble</label></td><td><input type="text" id="Mueble" name="Mueble"></td></tr>
+        <tr><td><label for="Bodega">Bodega</label></td><td><input type="text" id="Bodega" name="Bodega"></td></tr>
+        <tr><td><label for="Pais">País</label></td><td><input type="text" id="Pais" name="Pais"></td></tr>
+        <tr><td><label for="oficina">Oficina</label></td><td><input type="text" id="oficina" name="oficina"></td></tr>
+        <tr><td><label for="FechaRegistro">Fecha Registro</label></td><td><input type="text" id="FechaRegistro" name="FechaRegistro"></td></tr>
+      </table>
+      <div class="button-container">
+        <button type="submit">Actualizar Notebook</button>
+        <button type="button" onclick="location.reload()">Volver a Buscar</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+
+// Búsqueda combinada por ID o Serie
+document.getElementById('buscarNotebookForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const id = document.getElementById('idNotebook').value.trim();
+  const serie = document.getElementById('serieNotebook').value.trim();
+
+  const params = new URLSearchParams();
+  if (id) params.append('id', id);
+  if (serie) params.append('serie', serie);
+
+  if (!id && !serie) {
+    alert('Ingresa ID o Serie para buscar.');
+    return;
+  }
+
+  const res = await fetch(`/buscar_notebook2?${params.toString()}`);
+  const data = await res.json();
+
+  if (data.length > 0) {
+    const nb = data[0];
+    document.getElementById('formNotebook').style.display = 'block';
+    for (const key in nb) {
+      if (document.getElementById(key)) {
+        document.getElementById(key).value = nb[key] || '';
+      }
+    }
+  } else {
+    alert('Notebook no encontrado');
+  }
+});
+
+// Actualizar notebook
+document.getElementById('formNotebook').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const data = Object.fromEntries(new FormData(this).entries());
+
+  const res = await fetch('/editar_notebook', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+
+  if (res.ok) {
+    alert('✅ Notebook actualizado correctamente');
+    
+    // 🔁 Limpiar formulario
+    document.getElementById('formNotebook').reset();
+    document.getElementById('formNotebook').style.display = 'none';
+
+    // 🔁 Limpiar búsqueda también
+    document.getElementById('buscarNotebookForm').reset();
+  } else {
+    alert('❌ Error al actualizar notebook');
+  }
+});
+</script>
+</body>
+</html>
